@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>なかまはずれドリル</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #2d3436;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #636e72;
+            margin-bottom: 20px;
+        }
+
+        .character {
+            position: absolute;
+            font-size: 4em;
+            animation: bounce 2s infinite;
+        }
+
+        .character.left {
+            left: 10px;
+            top: 0;
+        }
+
+        .character.right {
+            right: 10px;
+            top: 0;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .question-container {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 3px solid #fd79a8;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .question-title {
+            font-size: 1.5em;
+            color: #2d3436;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            color: #2d3436;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .option {
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.3em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+            min-width: 180px;
+        }
+
+        .option:hover {
+            border-color: #74b9ff;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .option.selected {
+            border-color: #00b894;
+            background: #d1f2eb;
+        }
+
+        .option.correct {
+            border-color: #00b894;
+            background: #d1f2eb;
+            animation: correctPulse 0.5s;
+        }
+
+        .option.incorrect {
+            border-color: #e74c3c;
+            background: #fadbd8;
+            animation: shake 0.5s;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .handwriting-area {
+            background: white;
+            border: 3px dashed #74b9ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .handwriting-canvas {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: crosshair;
+            touch-action: none;
+            background: #fafafa;
+        }
+
+        .canvas-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #e74c3c, #fd79a8);
+        }
+
+        .result {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .result.show {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.5s ease;
+        }
+
+        .result.correct {
+            background: linear-gradient(135deg, #d1f2eb, #a8e6cf);
+            color: #00b894;
+            border: 3px solid #00b894;
+        }
+
+        .result.incorrect {
+            background: linear-gradient(135deg, #fadbd8, #f8d7da);
+            color: #e74c3c;
+            border: 3px solid #e74c3c;
+        }
+
+        .score {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3436;
+            z-index: 1000;
+        }
+
+        .floating-emoji {
+            position: fixed;
+            font-size: 2em;
+            pointer-events: none;
+            z-index: 999;
+            animation: float 3s ease-out forwards;
+        }
+
+        @keyframes float {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.5);
+            }
+        }
+
+        .next-question {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894, #00cec9);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+            
+            .character {
+                font-size: 2.5em;
+            }
+            
+            .handwriting-canvas {
+                width: 100% !important;
+                max-width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="score">
+        <span id="scoreText">スコア: 0/0</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="character left">🦊</div>
+            <div class="character right">🐰</div>
+            <h1 class="title">なかまはずれドリル</h1>
+            <p class="subtitle">どれが なかまはずれかな？</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="question-container">
+            <h2 class="question-title">問題 <span id="questionNumber">1</span></h2>
+            <p class="question-text" id="questionText"></p>
+            
+            <div class="options" id="optionsContainer">
+                <!-- オプションがここに動的に生成されます -->
+            </div>
+
+            <div class="handwriting-area">
+                <h3 style="margin-bottom: 15px; color: #2d3436;">✏️ りゆうを かいてね！</h3>
+                <canvas id="handwritingCanvas" class="handwriting-canvas" width="400" height="200"></canvas>
+                <div class="canvas-controls">
+                    <button class="btn secondary" onclick="clearCanvas()">🗑️ けす</button>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn success" onclick="checkAnswer()" id="checkBtn">✅ こたえあわせ</button>
+            </div>
+
+            <div class="result" id="result"></div>
+
+            <div class="next-question" id="nextQuestionBtn" style="display: none;">
+                <button class="btn" onclick="nextQuestion()">➡️ つぎのもんだい</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                text: "つぎのことばの なかから、「なかまはずれ」を ひとつ えらびましょう。",
+                options: ["さかな", "くるま", "いるか"],
+                correct: 1, // くるま（生き物ではない）
+                explanation: "「くるま」だけが いきものでは ないからです！"
+            },
+            {
+                text: "つぎのことばの なかから、「なかまはずれ」を ひとつ えらびましょう。",
+                options: ["りんご", "みかん", "いぬ"],
+                correct: 2, // いぬ（食べ物ではない）
+                explanation: "「いぬ」だけが たべものでは ないからです！"
+            },
+            {
+                text: "つぎのことばの なかから、「なかまはずれ」を ひとつ えらびましょう。",
+                options: ["いす", "つくえ", "ぞう"],
+                correct: 2, // ぞう（家具ではない）
+                explanation: "「ぞう」だけが かぐでは ないからです！"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = -1;
+        let isDrawing = false;
+        let drawings = [];
+
+        // Canvas setup
+        const canvas = document.getElementById('handwritingCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = '#2d3436';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+
+        // Audio context for sound effects
+        let audioContext;
+        
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(frequency, duration, type = 'sine') {
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playCorrectSound() {
+            playSound(523, 0.2); // C5
+            setTimeout(() => playSound(659, 0.2), 100); // E5
+            setTimeout(() => playSound(784, 0.4), 200); // G5
+        }
+
+        function playIncorrectSound() {
+            playSound(220, 0.3, 'sawtooth');
+        }
+
+        function playClickSound() {
+            playSound(800, 0.1);
+        }
+
+        // Canvas drawing functions
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        function startDrawing(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const pos = getCanvasPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        // Event listeners for both mouse and touch
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            playClickSound();
+        }
+
+        function showFloatingEmoji(emoji, x, y) {
+            const floatingEmoji = document.createElement('div');
+            floatingEmoji.className = 'floating-emoji';
+            floatingEmoji.textContent = emoji;
+            floatingEmoji.style.left = x + 'px';
+            floatingEmoji.style.top = y + 'px';
+            document.body.appendChild(floatingEmoji);
+            
+            setTimeout(() => {
+                document.body.removeChild(floatingEmoji);
+            }, 3000);
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('questionNumber').textContent = currentQuestion + 1;
+            document.getElementById('questionText').textContent = question.text;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.innerHTML = `
+                    <span>${index + 1}. ${option}</span>
+                    <span style="font-size: 1.5em;">${getOptionEmoji(option)}</span>
+                `;
+                optionElement.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionElement);
+            });
+
+            // Reset states
+            selectedOption = -1;
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('nextQuestionBtn').style.display = 'none';
+            document.getElementById('checkBtn').style.display = 'inline-block';
+            
+            // Clear canvas for new question
+            clearCanvas();
+
+            updateProgress();
+        }
+
+        function getOptionEmoji(option) {
+            const emojiMap = {
+                'さかな': '🐟', 'くるま': '🚗', 'いるか': '🐬',
+                'りんご': '🍎', 'みかん': '🍊', 'いぬ': '🐕',
+                'いす': '🪑', 'つくえ': '🗂️', 'ぞう': '🐘'
+            };
+            return emojiMap[option] || '🔤';
+        }
+
+        function selectOption(index) {
+            selectedOption = index;
+            playClickSound();
+            
+            document.querySelectorAll('.option').forEach((option, i) => {
+                option.classList.toggle('selected', i === index);
+            });
+        }
+
+        function checkAnswer() {
+            if (selectedOption === -1) {
+                alert('こたえを えらんでください！');
+                return;
+            }
+
+            const question = questions[currentQuestion];
+            const isCorrect = selectedOption === question.correct;
+            const resultElement = document.getElementById('result');
+            const options = document.querySelectorAll('.option');
+
+            // Mark all options
+            options.forEach((option, index) => {
+                if (index === question.correct) {
+                    option.classList.add('correct');
+                } else if (index === selectedOption && !isCorrect) {
+                    option.classList.add('incorrect');
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+                playCorrectSound();
+                resultElement.innerHTML = `
+                    <div style="font-size: 2em; margin-bottom: 10px;">🎉 せいかい！</div>
+                    <div>${question.explanation}</div>
+                `;
+                resultElement.className = 'result correct show';
+                showFloatingEmoji('🎉', window.innerWidth/2, window.innerHeight/2);
+            } else {
+                playIncorrectSound();
+                resultElement.innerHTML = `
+                    <div style="font-size: 2em; margin-bottom: 10px;">😅 ざんねん！</div>
+                    <div>せいかいは「${question.options[question.correct]}」です。</div>
+                    <div>${question.explanation}</div>
+                `;
+                resultElement.className = 'result incorrect show';
+                showFloatingEmoji('😅', window.innerWidth/2, window.innerHeight/2);
+            }
+
+            document.getElementById('checkBtn').style.display = 'none';
+            if (currentQuestion < questions.length - 1) {
+                document.getElementById('nextQuestionBtn').style.display = 'block';
+            } else {
+                setTimeout(showFinalResult, 2000);
+            }
+
+            updateScore();
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            displayQuestion();
+        }
+
+        function updateScore() {
+            document.getElementById('scoreText').textContent = `スコア: ${score}/${currentQuestion + 1}`;
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function showFinalResult() {
+            const resultElement = document.getElementById('result');
+            const percentage = Math.round((score / questions.length) * 100);
+            
+            let message = '';
+            let emoji = '';
+            
+            if (percentage === 100) {
+                message = 'パーフェクト！すばらしいです！';
+                emoji = '🏆';
+            } else if (percentage >= 70) {
+                message = 'よくできました！';
+                emoji = '🌟';
+            } else {
+                message = 'がんばりました！また ちょうせんしてね！';
+                emoji = '💪';
+            }
+
+            resultElement.innerHTML = `
+                <div style="font-size: 3em; margin-bottom: 15px;">${emoji}</div>
+                <div style="font-size: 1.5em; margin-bottom: 10px;">${message}</div>
+                <div style="font-size: 1.2em;">さいしゅうスコア: ${score}/${questions.length} (${percentage}%)</div>
+                <button class="btn" onclick="restartQuiz()" style="margin-top: 20px;">🔄 もういちど</button>
+            `;
+            resultElement.className = 'result correct show';
+            
+            document.getElementById('nextQuestionBtn').style.display = 'none';
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedOption = -1;
+            displayQuestion();
+            updateScore();
+        }
+
+        // Initialize the quiz
+        window.onload = function() {
+            displayQuestion();
+            updateScore();
+            
+            // Make canvas responsive
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                const maxWidth = Math.min(400, container.offsetWidth - 40);
+                canvas.style.width = maxWidth + 'px';
+                canvas.style.height = (maxWidth * 0.5) + 'px';
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        };
+    </script>
+</body>
+</html>
